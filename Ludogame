@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ludo Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(#f44336, #ffeb3b);
+    text-align: center;
+}
+
+/* Screens */
+.screen {
+    display: none;
+    height: 100vh;
+    padding-top: 80px;
+}
+
+.active {
+    display: block;
+}
+
+/* Buttons */
+button {
+    padding: 15px 25px;
+    margin: 10px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    background: #2196f3;
+    color: white;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* Board */
+#board {
+    width: 300px;
+    height: 300px;
+    margin: auto;
+    background: white;
+    border: 5px solid #000;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.cell {
+    border: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.token {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+.red { background: red; }
+.green { background: green; }
+.blue { background: blue; }
+.yellow { background: yellow; }
+
+#info {
+    margin-top: 15px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- START SCREEN -->
+<div class="screen active" id="startScreen">
+    <h1>🎲 LUDO GAME 🎲</h1>
+    <button onclick="goToMode()">START</button>
+</div>
+
+<!-- MODE SCREEN -->
+<div class="screen" id="modeScreen">
+    <h2>Select Mode</h2>
+    <button onclick="friendsMenu()">Friends</button>
+    <button onclick="startGame(2,true)">Robot</button>
+</div>
+
+<!-- FRIENDS SCREEN -->
+<div class="screen" id="friendsScreen">
+    <h2>Select Friends</h2>
+    <button onclick="startGame(2,false)">2 Friends</button>
+    <button onclick="startGame(3,false)">3 Friends</button>
+    <button onclick="startGame(4,false)">4 Friends</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div class="screen" id="gameScreen">
+    <h2 id="turnText"></h2>
+    <div id="board"></div>
+    <button onclick="rollDice()">🎲 Roll Dice</button>
+    <div id="info"></div>
+</div>
+
+<script>
+let players = [];
+let currentPlayer = 0;
+let isRobotMode = false;
+
+const colors = ["red","green","blue","yellow"];
+const boardSize = 25;
+
+function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+function goToMode() {
+    showScreen("modeScreen");
+}
+
+function friendsMenu() {
+    showScreen("friendsScreen");
+}
+
+function startGame(count, robot) {
+    players = [];
+    currentPlayer = 0;
+    isRobotMode = robot;
+
+    for (let i = 0; i < count; i++) {
+        players.push({ pos: 0, color: colors[i] });
+    }
+
+    showScreen("gameScreen");
+    drawBoard();
+    updateTurn();
+}
+
+function drawBoard() {
+    const board = document.getElementById("board");
+    board.innerHTML = "";
+
+    for (let i = 0; i < boardSize; i++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        players.forEach(p => {
+            if (p.pos === i) {
+                const token = document.createElement("div");
+                token.className = "token " + p.color;
+                cell.appendChild(token);
+            }
+        });
+
+        board.appendChild(cell);
+    }
+}
+
+function rollDice() {
+    let dice = Math.floor(Math.random() * 6) + 1;
+    let player = players[currentPlayer];
+
+    player.pos += dice;
+    if (player.pos >= boardSize - 1) {
+        document.getElementById("info").innerText =
+            player.color.toUpperCase() + " WINS!";
+        return;
+    }
+
+    document.getElementById("info").innerText =
+        player.color + " rolled " + dice;
+
+    drawBoard();
+    nextTurn();
+}
+
+function nextTurn() {
+    currentPlayer++;
+    if (currentPlayer >= players.length) currentPlayer = 0;
+    updateTurn();
+
+    if (isRobotMode && currentPlayer === 1) {
+        setTimeout(rollDice, 1000);
+    }
+}
+
+function updateTurn() {
+    document.getElementById("turnText").innerText =
+        players[currentPlayer].color.toUpperCase() + " TURN";
+}
+</script>
+
+</body>
+</html>
